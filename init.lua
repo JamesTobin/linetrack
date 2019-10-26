@@ -263,4 +263,146 @@ minetest.register_node("linetrack:invisible_platform", {
 	paramtype = "light",
 	sunlight_propagates = true,
 })
+
+--flat
+advtrains.register_tracks("line", {
+	nodename_prefix="advtrains:ltrack",
+	texture_prefix="advtrains_ltrack",
+	models_prefix="advtrains_ltrack",
+	models_suffix=".obj",
+	shared_texture="linetrack_line.png",
+	description=attrans("Line Track"),
+	formats={},
+	get_additional_definiton = function(def, preset, suffix, rotation)
+		return {
+			groups = {
+				advtrains_track=1,
+				advtrains_track_line=1,
+				save_in_at_nodedb=1,
+				dig_immediate=2,
+				not_in_creative_inventory=1,
+				not_blocking_trains=1,
+			},
+			use_texture_alpha = true,
+		}
+	end
+}, advtrains.ap.t_30deg_flat)
+--slopes
+advtrains.register_tracks("line", {
+	nodename_prefix="advtrains:ltrack",
+	texture_prefix="advtrains_ltrack",
+	models_prefix="advtrains_ltrack",
+	models_suffix=".obj",
+	shared_texture="linetrack_line.png",
+	description=attrans("Line Track"),
+	formats={vst1={true, false, true}, vst2={true, false, true}, vst31={true}, vst32={true}, vst33={true}},
+	get_additional_definiton = function(def, preset, suffix, rotation)
+		return {
+			groups = {
+				advtrains_track=1,
+				advtrains_track_line=1,
+				save_in_at_nodedb=1,
+				dig_immediate=2,
+				not_in_creative_inventory=1,
+				not_blocking_trains=1,
+			},
+			use_texture_alpha = true,
+		}
+	end
+}, advtrains.ap.t_30deg_slope)
+
+if atlatc ~= nil then
+	advtrains.register_tracks("line", {
+		nodename_prefix="advtrains:ltrack_lua",
+		texture_prefix="advtrains_ltrack_lua",
+		models_prefix="advtrains_ltrack",
+		models_suffix=".obj",
+		shared_texture="linetrack_lua.png",
+		description=atltrans("LuaAutomation ATC Line"),
+		formats={},
+		get_additional_definiton = function(def, preset, suffix, rotation)
+			return {
+				after_place_node = atlatc.active.after_place_node,
+				after_dig_node = atlatc.active.after_dig_node,
+
+				on_receive_fields = function(pos, ...)
+					atlatc.active.on_receive_fields(pos, ...)
+					
+					--set arrowconn (for ATC)
+					local ph=minetest.pos_to_string(pos)
+					local _, conns=advtrains.get_rail_info_at(pos, advtrains.all_tracktypes)
+					atlatc.active.nodes[ph].arrowconn=conns[1].c
+				end,
+
+				advtrains = {
+					on_train_enter = function(pos, train_id)
+						--do async. Event is fired in train steps
+						atlatc.interrupt.add(0, pos, {type="train", train=true, id=train_id})
+					end,
+				},
+				luaautomation = {
+					fire_event=atlatc.rail.fire_event
+				},
+				digiline = {
+					receptor = {},
+					effector = {
+						action = atlatc.active.on_digiline_receive
+					},
+				},
+				groups = {
+					advtrains_track=1,
+					advtrains_track_line=1,
+					save_in_at_nodedb=1,
+					dig_immediate=2,
+					not_in_creative_inventory=1,
+					not_blocking_trains=1,
+				},
+				use_texture_alpha = true,
+			}
+		end,
+	}, advtrains.trackpresets.t_30deg_straightonly)
+end
+
+if minetest.get_modpath("advtrains_line_automation") ~= nil then
+	local adef = minetest.registered_nodes["advtrains_line_automation:dtrack_stop_st"]
 	
+	advtrains.register_tracks("line", {
+		nodename_prefix="advtrains:ltrack_stn",
+		texture_prefix="advtrains_ltrack_stn",
+		models_prefix="advtrains_ltrack",
+		models_suffix=".obj",
+		shared_texture="linetrack_stn.png",
+		description="Station/Stop Line",
+		formats={},
+		get_additional_definiton = function(def, preset, suffix, rotation)
+			return {
+				after_place_node = adef.after_place_node,
+				after_dig_node = adef.after_dig_node,
+				on_rightclick = adef.on_rightclick,
+				advtrains = adef.advtrains,
+				groups = {
+					advtrains_track=1,
+					advtrains_track_line=1,
+					save_in_at_nodedb=1,
+					dig_immediate=2,
+					not_in_creative_inventory=1,
+					not_blocking_trains=1,
+				},
+				use_texture_alpha = true,
+			}
+		end,
+	}, advtrains.trackpresets.t_30deg_straightonly)
+end
+
+minetest.register_abm({
+	name = "linetrack:line_replacement_1",
+	nodenames = {"group:advtrains_track_line"},
+	interval=1,
+	chance=1,
+	action = function(pos, node, active_object_count, active_object_count_wider)
+		node.name = node.name:gsub("advtrains:ltrack", "linetrack:watertrack")
+		print(node.name)
+		minetest.set_node(pos, node)
+		advtrains.ndb.update(pos)
+	end,
+})
