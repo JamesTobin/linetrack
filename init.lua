@@ -4,7 +4,7 @@
 --flat
 
 local function suitable_substrate(upos)
-	return minetest.registered_nodes[minetest.get_node(upos).name] and (minetest.registered_nodes[minetest.get_node(upos).name].liquidtype == "source")
+	return minetest.registered_nodes[minetest.get_node(upos).name] and (minetest.registered_nodes[minetest.get_node(upos).name].liquidtype == "source" or minetest.registered_nodes[minetest.get_node(upos).name].liquidtype == "flowing")
 end
 
 advtrains.register_tracks("waterline", {
