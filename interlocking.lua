@@ -83,7 +83,7 @@ for typ, prts in pairs({
 	minetest.register_node("linetrack:road_signal_"..typ, {
 		description = "Road Main Signal",
 		drawtype = "nodebox",
-		tiles = {"linetrack_lane_"..typ..".png"},
+		tiles = {"linetrack_lane_"..typ..".png", "linetrack_transparent.png"},
 		node_box = {
 			type = "fixed",
 			fixed = {-0.5, -0.5, -0.5, 0.5, -0.49, 0.5}
@@ -146,7 +146,7 @@ minetest.register_node("linetrack:road_tcb_node", {
 	paramtype="light",
 	paramtype2="facedir",
 	walkable = false,
-	tiles = {"linetrack_lane_tcb.png"},
+	tiles = {"linetrack_lane_tcb.png", "linetrack_transparent.png"},
 	wield_image = "linetrack_lane_tcb.png",
 	inventory_image = "linetrack_lane_tcb.png",
 	description="Road Circuit Break",
