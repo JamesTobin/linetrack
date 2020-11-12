@@ -57,7 +57,117 @@ advtrains.register_tracks("waterline", {
 	end
 }, advtrains.ap.t_30deg_slope)
 
+advtrains.register_tracks("roadline", {
+	nodename_prefix="linetrack:roadtrack",
+	texture_prefix="advtrains_rtrack",
+	models_prefix="advtrains_ltrack",
+	models_suffix=".obj",
+	shared_texture="linetrack_road_line.png",
+	description=attrans("Road Line Track"),
+	formats={},
+	get_additional_definiton = function(def, preset, suffix, rotation)
+		return {
+			groups = {
+				advtrains_track=1,
+				advtrains_track_roadline=1,
+				save_in_at_nodedb=1,
+				dig_immediate=2,
+				not_in_creative_inventory=1,
+				not_blocking_trains=1,
+			},
+			use_texture_alpha = true,
+		}
+	end
+}, advtrains.ap.t_30deg_flat)
+--slopes
+advtrains.register_tracks("roadline", {
+	nodename_prefix="linetrack:roadtrack",
+	texture_prefix="advtrains_rtrack",
+	models_prefix="advtrains_rtrack",
+	models_suffix=".obj",
+	shared_texture="[combine:32x16:0,0=baked_clay_black.png:16,0=linetrack_road_line.png:",
+	description=attrans("Road Line Track"),
+	formats={vst1={true, false, false}, vst2={true, false, false}, vst31={false}, vst32={false}, vst33={false}},
+	get_additional_definiton = function(def, preset, suffix, rotation)
+		return {
+			groups = {
+				advtrains_track=1,
+				advtrains_track_roadline=1,
+				save_in_at_nodedb=1,
+				dig_immediate=2,
+				not_in_creative_inventory=1,
+				not_blocking_trains=1,
+			},
+			use_texture_alpha = true,
+		}
+	end
+}, advtrains.ap.t_30deg_slope)
+
+--If these nodes aren't registered, the game might crash. This is a workaround.
+advtrains.register_tracks("roadline", {
+	nodename_prefix="linetrack:roadtrack",
+	texture_prefix="advtrains_rtrack",
+	models_prefix="advtrains_ltrack",
+	models_suffix=".obj",
+	shared_texture="[combine:32x16:0,0=baked_clay_black.png:16,0=linetrack_road_line.png:",
+	description=attrans("Road Line Track"),
+	formats={vst1={false, false, true}, vst2={false, false, true}, vst31={true}, vst32={true}, vst33={true}},
+	get_additional_definiton = function(def, preset, suffix, rotation)
+		return {
+			groups = {
+				advtrains_track=1,
+				advtrains_track_roadline=1,
+				save_in_at_nodedb=1,
+				dig_immediate=2,
+				not_in_creative_inventory=1,
+				not_blocking_trains=1,
+			},
+			use_texture_alpha = true,
+		}
+	end
+}, advtrains.ap.t_30deg_slope)
+
 if atlatc ~= nil then
+	local foo = function(def, preset, suffix, rotation)
+		return {
+			after_place_node = atlatc.active.after_place_node,
+			after_dig_node = atlatc.active.after_dig_node,
+				on_receive_fields = function(pos, ...)
+				atlatc.active.on_receive_fields(pos, ...)
+				
+				--set arrowconn (for ATC)
+				local ph=minetest.pos_to_string(pos)
+				local _, conns=advtrains.get_rail_info_at(pos, advtrains.all_tracktypes)
+				atlatc.active.nodes[ph].arrowconn=conns[1].c
+			end,
+
+				advtrains = {
+				on_train_enter = function(pos, train_id)
+					--do async. Event is fired in train steps
+					atlatc.interrupt.add(0, pos, {type="train", train=true, id=train_id})
+				end,
+			},
+			luaautomation = {
+				fire_event=atlatc.rail.fire_event
+			},
+			digiline = {
+				receptor = {},
+				effector = {
+					action = atlatc.active.on_digiline_receive
+				},
+			},
+			groups = {
+				advtrains_track=1,
+				advtrains_track_waterline=1,
+				save_in_at_nodedb=1,
+				dig_immediate=2,
+				not_in_creative_inventory=1,
+				not_blocking_trains=1,
+			},
+			use_texture_alpha = true,
+		}
+	end
+
 	advtrains.register_tracks("waterline", {
 		nodename_prefix="linetrack:watertrack_lua",
 		texture_prefix="advtrains_ltrack_lua",
@@ -68,51 +178,41 @@ if atlatc ~= nil then
 		formats={},
 		liquids_pointable=true,
 		suitable_substrate=suitable_substrate,
-		get_additional_definiton = function(def, preset, suffix, rotation)
-			return {
-				after_place_node = atlatc.active.after_place_node,
-				after_dig_node = atlatc.active.after_dig_node,
+		get_additional_definiton = foo,
+	}, advtrains.trackpresets.t_30deg_straightonly)
 
-				on_receive_fields = function(pos, ...)
-					atlatc.active.on_receive_fields(pos, ...)
-					
-					--set arrowconn (for ATC)
-					local ph=minetest.pos_to_string(pos)
-					local _, conns=advtrains.get_rail_info_at(pos, advtrains.all_tracktypes)
-					atlatc.active.nodes[ph].arrowconn=conns[1].c
-				end,
-
-				advtrains = {
-					on_train_enter = function(pos, train_id)
-						--do async. Event is fired in train steps
-						atlatc.interrupt.add(0, pos, {type="train", train=true, id=train_id})
-					end,
-				},
-				luaautomation = {
-					fire_event=atlatc.rail.fire_event
-				},
-				digiline = {
-					receptor = {},
-					effector = {
-						action = atlatc.active.on_digiline_receive
-					},
-				},
-				groups = {
-					advtrains_track=1,
-					advtrains_track_waterline=1,
-					save_in_at_nodedb=1,
-					dig_immediate=2,
-					not_in_creative_inventory=1,
-					not_blocking_trains=1,
-				},
-				use_texture_alpha = true,
-			}
-		end,
+	advtrains.register_tracks("roadline", {
+		nodename_prefix="linetrack:roadtrack_lua",
+		texture_prefix="advtrains_rtrack_lua",
+		models_prefix="advtrains_ltrack",
+		models_suffix=".obj",
+		shared_texture="linetrack_road_lua.png",
+		description=atltrans("LuaAutomation ATC Line"),
+		formats={},
+		liquids_pointable=true,
+		get_additional_definiton = foo,
 	}, advtrains.trackpresets.t_30deg_straightonly)
 end
 
 if minetest.get_modpath("advtrains_line_automation") ~= nil then
 	local adef = minetest.registered_nodes["advtrains_line_automation:dtrack_stop_st"]
+	local foo = function(def, preset, suffix, rotation)
+		return {
+			after_place_node = adef.after_place_node,
+			after_dig_node = adef.after_dig_node,
+			on_rightclick = adef.on_rightclick,
+			advtrains = adef.advtrains,
+			groups = {
+				advtrains_track=1,
+				advtrains_track_waterline=1,
+				save_in_at_nodedb=1,
+				dig_immediate=2,
+				not_in_creative_inventory=1,
+				not_blocking_trains=1,
+			},
+			use_texture_alpha = true,
+		}
+	end
 	
 	advtrains.register_tracks("waterline", {
 		nodename_prefix="linetrack:watertrack_stn",
@@ -124,25 +224,44 @@ if minetest.get_modpath("advtrains_line_automation") ~= nil then
 		formats={},
 		liquids_pointable=true,
 		suitable_substrate=suitable_substrate,
-		get_additional_definiton = function(def, preset, suffix, rotation)
-			return {
-				after_place_node = adef.after_place_node,
-				after_dig_node = adef.after_dig_node,
-				on_rightclick = adef.on_rightclick,
-				advtrains = adef.advtrains,
-				groups = {
-					advtrains_track=1,
-					advtrains_track_waterline=1,
-					save_in_at_nodedb=1,
-					dig_immediate=2,
-					not_in_creative_inventory=1,
-					not_blocking_trains=1,
-				},
-				use_texture_alpha = true,
-			}
-		end,
+		get_additional_definiton = foo,
+	}, advtrains.trackpresets.t_30deg_straightonly)
+	
+	advtrains.register_tracks("roadline", {
+		nodename_prefix="linetrack:watertrack_road_stn",
+		texture_prefix="advtrains_rtrack_stn",
+		models_prefix="advtrains_ltrack",
+		models_suffix=".obj",
+		shared_texture="linetrack_road_stn.png",
+		description="Station/Stop Line",
+		formats={},
+		liquids_pointable=true,
+		get_additional_definiton = foo,
 	}, advtrains.trackpresets.t_30deg_straightonly)
 end
+
+-- atc track
+advtrains.register_tracks("waterline", {
+	nodename_prefix="linetrack:watertrack_atc",
+	texture_prefix="advtrains_ltrack_atc",
+	models_prefix="advtrains_ltrack",
+	models_suffix=".obj",
+	shared_texture="linetrack_atc.png",
+	description=attrans("Watertrack ATC controller"),
+	formats={},
+	get_additional_definiton = advtrains.atc_function
+}, advtrains.trackpresets.t_30deg_straightonly)
+
+advtrains.register_tracks("roadline", {
+	nodename_prefix="linetrack:watertrack_road_atc",
+	texture_prefix="advtrains_rtrack_atc",
+	models_prefix="advtrains_ltrack",
+	models_suffix=".obj",
+	shared_texture="linetrack_road_atc.png",
+	description=attrans("Roadtrack ATC controller"),
+	formats={},
+	get_additional_definiton = advtrains.atc_function
+}, advtrains.trackpresets.t_30deg_straightonly)
 
 if minetest.get_modpath("advtrains_interlocking") ~= nil then
 	dofile(minetest.get_modpath("linetrack") .. "/interlocking.lua")
@@ -377,4 +496,21 @@ minetest.register_node("linetrack:invisible_platform", {
 	paramtype = "light",
 	sunlight_propagates = true,
 })
-	
+
+minetest.register_node("linetrack:lane_platform", {
+	description = "Lane Platform",
+	groups = {cracky = 1, not_blocking_trains = 1, platform=1},
+	drawtype = "nodebox",
+	tiles = {"linetrack_lane_platform.png"},
+	node_box = {
+		type = "fixed",
+		fixed = {-0.5, -0.5, -0.5, 0.5, -0.49, 0.5}
+	},
+	wield_image = "linetrack_lane_platform.png",
+	inventory_image = "linetrack_lane_platform.png",
+	walkable = false,
+	paramtype2="facedir",
+	paramtype = "light",
+	sunlight_propagates = true,
+})
+
