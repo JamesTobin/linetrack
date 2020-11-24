@@ -196,22 +196,24 @@ end
 
 if minetest.get_modpath("advtrains_line_automation") ~= nil then
 	local adef = minetest.registered_nodes["advtrains_line_automation:dtrack_stop_st"]
-	local foo = function(def, preset, suffix, rotation)
-		return {
-			after_place_node = adef.after_place_node,
-			after_dig_node = adef.after_dig_node,
-			on_rightclick = adef.on_rightclick,
-			advtrains = adef.advtrains,
-			groups = {
-				advtrains_track=1,
-				advtrains_track_waterline=1,
-				save_in_at_nodedb=1,
-				dig_immediate=2,
-				not_in_creative_inventory=1,
-				not_blocking_trains=1,
-			},
-			use_texture_alpha = true,
-		}
+	local foo = function(ttype)
+		return function(def, preset, suffix, rotation)
+			return {
+				after_place_node = adef.after_place_node,
+				after_dig_node = adef.after_dig_node,
+				on_rightclick = adef.on_rightclick,
+				advtrains = adef.advtrains,
+				groups = {
+					advtrains_track=1,
+					[ttype]=1,
+					save_in_at_nodedb=1,
+					dig_immediate=2,
+					not_in_creative_inventory=1,
+					not_blocking_trains=1,
+				},
+				use_texture_alpha = true,
+			}
+		end
 	end
 	
 	advtrains.register_tracks("waterline", {
@@ -224,7 +226,7 @@ if minetest.get_modpath("advtrains_line_automation") ~= nil then
 		formats={},
 		liquids_pointable=true,
 		suitable_substrate=suitable_substrate,
-		get_additional_definiton = foo,
+		get_additional_definiton = foo("advtrains_track_waterline"),
 	}, advtrains.trackpresets.t_30deg_straightonly)
 	
 	advtrains.register_tracks("roadline", {
@@ -236,7 +238,7 @@ if minetest.get_modpath("advtrains_line_automation") ~= nil then
 		description="Station/Stop Line",
 		formats={},
 		liquids_pointable=true,
-		get_additional_definiton = foo,
+		get_additional_definiton = foo("advtrains_track_roadline"),
 	}, advtrains.trackpresets.t_30deg_straightonly)
 end
 
@@ -477,6 +479,93 @@ advtrains.register_wagon("boat", {
 		end
 	end,
 }, "Boat", "linetrack_boat_inv.png")
+
+advtrains.register_wagon("bus", {
+	mesh="linetrack_bus.b3d",
+	textures = {"linetrack_bus.png", "linetrack_bus_body.png", "linetrack_bus_bumper.png", "linetrack_light_red.png", "linetrack_bus_light_white.png", "linetrack_bus_light_yellow.png", "linetrack_bus_windows.png"},
+	drives_on={roadline=true},
+	max_speed=15,
+	seats = {
+		{
+			name="Driver stand",
+			attach_offset={x=-5, y=0, z=19},
+			view_offset={x=-5, y=0, z=19},
+			group="dstand",
+		},
+		{
+			name="1",
+			attach_offset={x=-5, y=0, z=-4},
+			view_offset={x=-5, y=0, z=-4},
+			group="pass",
+		},
+		{
+			name="2",
+			attach_offset={x=5, y=0, z=-4},
+			view_offset={x=5, y=0, z=-4},
+			group="pass",
+		},
+		{
+			name="3",
+			attach_offset={x=-5, y=0, z=-14},
+			view_offset={x=-5, y=0, z=-14},
+			group="pass",
+		},
+		{
+			name="4",
+			attach_offset={x=5, y=0, z=-14},
+			view_offset={x=5, y=0, z=-14},
+			group="pass",
+		},
+		{
+			name="5",
+			attach_offset={x=-5, y=0, z=-24},
+			view_offset={x=-5, y=0, z=-24},
+			group="pass",
+		},
+		{
+			name="6",
+			attach_offset={x=5, y=0, z=-24},
+			view_offset={x=5, y=0, z=-24},
+			group="pass",
+		},
+	},
+	seat_groups = {
+		dstand={
+			name = "Driver Stand",
+			access_to = {"pass"},
+			require_doors_open=true,
+			driving_ctrl_access=true,
+		},
+		pass={
+			name = "Passenger area",
+			access_to = {"dstand"},
+			require_doors_open=true,
+		},
+	},
+	doors={
+		open={
+			[-1]={frames={x=2, y=20}, time=1},
+			[1]={frames={x=2, y=20}, time=1},
+			sound = "advtrains_subway_dopen",
+		},
+		close={
+			[-1]={frames={x=20, y=38}, time=1},
+			[1]={frames={x=20, y=38}, time=1},
+			sound = "advtrains_subway_dclose",
+		}
+	},
+	assign_to_seat_group = {"pass", "dstand"},
+	door_entry={-1, 1},
+	visual_size = {x=1, y=1, z=1},
+	use_texture_alpha = true,
+	backface_culling = false,
+    	wagon_span=3,
+	collisionbox = {-2.0,-3.0,-2.0, 2.0,4.0,2.0},
+	is_locomotive=true,
+	wagon_width=3,
+	drops={"default:steelblock 4"},
+	horn_sound = "linetrack_boat_horn",
+}, "Bus", "linetrack_tcb.png")
 
 minetest.register_node("linetrack:invisible_platform", {
 	description = "Invisible Platform",
