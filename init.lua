@@ -80,14 +80,77 @@ advtrains.register_tracks("roadline", {
 	end
 }, advtrains.ap.t_30deg_flat)
 --slopes
+local function conns(c1, c2, r1, r2) return {{c=c1, y=r1}, {c=c2, y=r2}} end
+
+local slab_preset={
+	regstep=1,
+	variant={
+		st={
+			conns = conns(0,8,0.5,0.5),
+			rail_y = 0.5,
+			desc = "straight (slab)",
+			tpdouble = true,
+			tpsingle = true,
+			trackworker = "cr",
+		},
+		cr={
+			conns = conns(0,7,0.5,0.5),
+			rail_y = 0.5,
+			desc = "curve (slab)",
+			tpdouble = true,
+			trackworker = "st",
+		},
+	},
+	regtp=true,
+	tpdefault="st",
+	trackworker={},
+	rotation={"", "_30", "_45", "_60"},
+}
+
+local slope1_preset={
+	regstep=1,
+	variant={
+		vst1={
+			conns = conns(8,0,0,0.5),
+			rail_y = 0.25,
+			desc = "slope (lower)",
+			tpdouble = true,
+			tpsingle = true,
+			trackworker = "vst1",
+		},
+	},
+	regtp=true,
+	tpdefault="vst1",
+	trackworker={},
+	rotation={""},
+}
+
+local slope2_preset={
+	regstep=1,
+	variant={
+		vst2={
+			conns = conns(8,0,0.5,1),
+			rail_y = 0.75,
+			desc = "slope (lower)",
+			tpdouble = true,
+			tpsingle = true,
+			trackworker = "vst2",
+		},
+	},
+	regtp=true,
+	tpdefault="vst2",
+	trackworker={},
+	rotation={""},
+}
+
 advtrains.register_tracks("roadline", {
-	nodename_prefix="linetrack:roadtrack",
-	texture_prefix="advtrains_rtrack",
+	nodename_prefix="linetrack:roadtrack_slope1",
+	texture_prefix="linetrack_road_slope1",
 	models_prefix="advtrains_rtrack",
 	models_suffix=".obj",
 	shared_texture="[combine:32x16:0,0=baked_clay_black.png:16,0=linetrack_road_line.png:",
-	description=attrans("Road Line Track"),
-	formats={vst1={true, false, false}, vst2={true, false, false}, vst31={false}, vst32={false}, vst33={false}},
+	description=attrans("Road Line Track on Slope (lower)"),
+	formats={},
 	get_additional_definiton = function(def, preset, suffix, rotation)
 		return {
 			groups = {
@@ -98,20 +161,29 @@ advtrains.register_tracks("roadline", {
 				not_in_creative_inventory=1,
 				not_blocking_trains=1,
 			},
+			node_box = {
+				type = "fixed",
+				fixed = {
+					{-0.5, -0.5,   -0.5,  0.5, -0.375, 0.5},
+					{-0.5, -0.375, -0.25, 0.5, -0.25,  0.5},
+					{-0.5, -0.25,  0,    0.5, -0.125, 0.5},
+					{-0.5, -0.125, 0.25, 0.5,  0,     0.5},
+				}
+			},
 			use_texture_alpha = true,
+			walkable = true,
 		}
 	end
-}, advtrains.ap.t_30deg_slope)
+}, slope1_preset)
 
---If these nodes aren't registered, the game might crash. This is a workaround.
 advtrains.register_tracks("roadline", {
-	nodename_prefix="linetrack:roadtrack",
-	texture_prefix="advtrains_rtrack",
-	models_prefix="advtrains_ltrack",
+	nodename_prefix="linetrack:roadtrack_slope2",
+	texture_prefix="linetrack_road_slope2",
+	models_prefix="advtrains_rtrack",
 	models_suffix=".obj",
 	shared_texture="[combine:32x16:0,0=baked_clay_black.png:16,0=linetrack_road_line.png:",
-	description=attrans("Road Line Track"),
-	formats={vst1={false, false, true}, vst2={false, false, true}, vst31={true}, vst32={true}, vst33={true}},
+	description=attrans("Road Line Track on Slope (upper)"),
+	formats={},
 	get_additional_definiton = function(def, preset, suffix, rotation)
 		return {
 			groups = {
@@ -122,10 +194,48 @@ advtrains.register_tracks("roadline", {
 				not_in_creative_inventory=1,
 				not_blocking_trains=1,
 			},
+			node_box = {
+				type = "fixed",
+				fixed = {
+					{-0.5, -0.5,   -0.5,  0.5, 0.125, 0.5},
+					{-0.5, 0.125, -0.25, 0.5, 0.25,  0.5},
+					{-0.5, 0.25,  0,    0.5, 0.375, 0.5},
+					{-0.5, 0.375, 0.25, 0.5,  0.5,     0.5},
+				}
+			},
 			use_texture_alpha = true,
+			walkable = true,
 		}
 	end
-}, advtrains.ap.t_30deg_slope)
+}, slope2_preset)
+
+advtrains.register_tracks("roadline", {
+	nodename_prefix="linetrack:roadtrack_slab",
+	texture_prefix="linetrack_road_slab",
+	models_prefix="advtrains_rtracks",
+	models_suffix=".obj",
+	shared_texture="[combine:32x16:0,0=baked_clay_black.png:16,0=linetrack_road_line.png:",
+	description=attrans("Road Line Track on Slab"),
+	formats={},
+	get_additional_definiton = function(def, preset, suffix, rotation)
+		return {
+			groups = {
+				advtrains_track=1,
+				advtrains_track_roadline=1,
+				save_in_at_nodedb=1,
+				dig_immediate=2,
+				not_in_creative_inventory=1,
+				not_blocking_trains=1,
+			},
+			node_box = {
+				type = "fixed",
+				fixed = {-0.5, -0.5, -0.5, 0.5, 0, 0.5},
+			},
+			use_texture_alpha = true,
+			walkable = true,
+		}
+	end
+}, slab_preset)
 
 if atlatc ~= nil then
 	local foo = function(def, preset, suffix, rotation)
