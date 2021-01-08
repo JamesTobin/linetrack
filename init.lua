@@ -238,44 +238,46 @@ advtrains.register_tracks("roadline", {
 }, slab_preset)
 
 if atlatc ~= nil then
-	local foo = function(def, preset, suffix, rotation)
-		return {
-			after_place_node = atlatc.active.after_place_node,
-			after_dig_node = atlatc.active.after_dig_node,
-				on_receive_fields = function(pos, ...)
-				atlatc.active.on_receive_fields(pos, ...)
-				
-				--set arrowconn (for ATC)
-				local ph=minetest.pos_to_string(pos)
-				local _, conns=advtrains.get_rail_info_at(pos, advtrains.all_tracktypes)
-				atlatc.active.nodes[ph].arrowconn=conns[1].c
-			end,
-
-				advtrains = {
-				on_train_enter = function(pos, train_id)
-					--do async. Event is fired in train steps
-					atlatc.interrupt.add(0, pos, {type="train", train=true, id=train_id})
+	local function foo(track_type)
+		return function(def, preset, suffix, rotation)
+			return {
+				after_place_node = atlatc.active.after_place_node,
+				after_dig_node = atlatc.active.after_dig_node,
+					on_receive_fields = function(pos, ...)
+					atlatc.active.on_receive_fields(pos, ...)
+					
+					--set arrowconn (for ATC)
+					local ph=minetest.pos_to_string(pos)
+					local _, conns=advtrains.get_rail_info_at(pos, advtrains.all_tracktypes)
+					atlatc.active.nodes[ph].arrowconn=conns[1].c
 				end,
-			},
-			luaautomation = {
-				fire_event=atlatc.rail.fire_event
-			},
-			digiline = {
-				receptor = {},
-				effector = {
-					action = atlatc.active.on_digiline_receive
+
+					advtrains = {
+					on_train_enter = function(pos, train_id)
+						--do async. Event is fired in train steps
+						atlatc.interrupt.add(0, pos, {type="train", train=true, id=train_id})
+					end,
 				},
-			},
-			groups = {
-				advtrains_track=1,
-				advtrains_track_waterline=1,
-				save_in_at_nodedb=1,
-				dig_immediate=2,
-				not_in_creative_inventory=1,
-				not_blocking_trains=1,
-			},
-			use_texture_alpha = true,
-		}
+				luaautomation = {
+					fire_event=atlatc.rail.fire_event
+				},
+				digiline = {
+					receptor = {},
+					effector = {
+						action = atlatc.active.on_digiline_receive
+					},
+				},
+				groups = {
+					advtrains_track=1,
+					[track_type]=1,
+					save_in_at_nodedb=1,
+					dig_immediate=2,
+					not_in_creative_inventory=1,
+					not_blocking_trains=1,
+				},
+				use_texture_alpha = true,
+			}
+		end
 	end
 
 	advtrains.register_tracks("waterline", {
@@ -288,7 +290,7 @@ if atlatc ~= nil then
 		formats={},
 		liquids_pointable=true,
 		suitable_substrate=suitable_substrate,
-		get_additional_definiton = foo,
+		get_additional_definiton = foo("advtrains_track_waterline"),
 	}, advtrains.trackpresets.t_30deg_straightonly)
 
 	advtrains.register_tracks("roadline", {
@@ -300,7 +302,7 @@ if atlatc ~= nil then
 		description=atltrans("LuaAutomation ATC Line"),
 		formats={},
 		liquids_pointable=true,
-		get_additional_definiton = foo,
+		get_additional_definiton = foo("advtrains_track_roadline"),
 	}, advtrains.trackpresets.t_30deg_straightonly)
 end
 
