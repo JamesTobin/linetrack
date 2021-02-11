@@ -415,7 +415,7 @@ advtrains.register_wagon("boat", {
 		"linetrack_boat_windows.png",
 	},
 	drives_on={waterline=true},
-	max_speed=10,
+	max_speed=40,
 	seats = {
 		{
 			name="Driver stand",
@@ -596,7 +596,7 @@ advtrains.register_wagon("bus", {
 	mesh="linetrack_bus.b3d",
 	textures = {"linetrack_bus.png", "linetrack_bus_body.png", "linetrack_bus_bumper.png", "linetrack_light_red.png", "linetrack_bus_light_white.png", "linetrack_bus_light_yellow.png", "linetrack_bus_windows.png"},
 	drives_on={roadline=true},
-	max_speed=15,
+	max_speed=45,
 	seats = {
 		{
 			name="Driver stand",
