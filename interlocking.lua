@@ -4,13 +4,13 @@ local setaspectf = function()
 		if asp.shunt then
 			advtrains.ndb.swap_node(pos, {name="linetrack:signal_shunt", param2 = node.param2})
 		else
-			advtrains.ndb.swap_node(pos, {name=prefix.."_danger", param2 = node.param2})
+			advtrains.ndb.swap_node(pos, {name="linetrack:signal_danger", param2 = node.param2})
 		end
 	else
 		if asp.dst ~= 0 and asp.main == -1 then
 			advtrains.ndb.swap_node(pos, {name="linetrack:signal_free", param2 = node.param2})
 		else
-			advtrains.ndb.swap_node(pos, {name=prefix.."_slow", param2 = node.param2})
+			advtrains.ndb.swap_node(pos, {name="linetrack:signal_slow", param2 = node.param2})
 		end
 	end
 	local meta = minetest.get_meta(pos)
